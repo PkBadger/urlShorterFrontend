@@ -1,5 +1,14 @@
-var app1 = angular.module("app",["ngRoute"]);
-app1.config(function($routeProvider) {
+var app = angular.module("app",["ngRoute"]);
+
+////////////////////////
+// URL Configuration //
+//////////////////////
+app.constant('backend', 'http://localhost:8000');
+
+//////////////////////////
+// Route configuration //
+////////////////////////
+app.config(function($routeProvider) {
     $routeProvider
     .when("/redirect/:url", {
         templateUrl : "views/redirect.html",
@@ -15,14 +24,19 @@ app1.config(function($routeProvider) {
     })
 
 });
-app1.controller("upload",['$scope','$http', function ($scope,$http){
+/////////////////////////////////////////
+// Controller for uploading a new URL //
+//////////////////////////////////////
+app.controller("upload",['$scope','$http','backend', function ($scope,$http,backend){
   $scope.url = "";
   $scope.result = "";
+  $scope.error = "";
+  $scope.pre = false;
   $scope.Save = function(){
     data = {
       'originalUrl':$scope.url
     };
-    $http.post("http://localhost:8000/api/urls/",data).then(succes,error);
+    $http.post(backend + "/api/urls/",data).then(succes,error);
 
     function succes(response){
       console.log(response.data);
@@ -30,29 +44,48 @@ app1.controller("upload",['$scope','$http', function ($scope,$http){
     }
     function error(response){
       console.log(response.data);
-
+      $scope.error = response.data;
+      $scope.pre = true;
     }
   }
 }]);
-app1.controller('redirect',["$routeParams",'$scope','$http',function($routeParams,$scope,$http){
+
+//////////////////////////////////////////
+//Controller for access to a short URL //
+////////////////////////////////////////
+app.controller('redirect',["$routeParams",'$scope','$http','$window','backend',function($routeParams,$scope,$http,$window,backend){
   var short = $routeParams.url;
+  $scope.error = "";
+  $scope.pre = false;
   $scope.MyUrl = "asd";
   if(short){
-    $http.get("http://localhost:8000/api/urls/?short="+short).then(succes,error)
+    $http.get(backend +"/api/urls/?short="+short).then(succes,error)
     function succes(response){
-      console.log(response.data[0]);
-      $scope.MyUrl = response.data[0].originalUrl;
+      if(response.data[0] == undefined){
+        $scope.error="Page Not found";
+        $scope.pre = true;
+      }
+      else{
+        $scope.MyUrl = response.data[0].originalUrl;
+        $window.location.href = response.data[0].originalUrl;
+      }
       console.log(response.data[0].shortUrl);
     }
     function error(response){
       console.log(response.data);
+      $scope.error = response.data;
+      $scope.pre = true;
 
     }
   }
 }]);
-app1.controller("listCtrl",['$scope','$http', function ($scope,$http){
+
+//////////////////////////////////////////
+// Controller for listing All the urls //
+////////////////////////////////////////
+app.controller("listCtrl",['$scope','$http','backend', function ($scope,$http,backend){
   $scope.urls = {};
-  $http.get("http://localhost:8000/api/urls/").then(success);
+  $http.get(backend + "/api/urls/").then(success);
   function success(response){
     $scope.urls = response.data;
   }
