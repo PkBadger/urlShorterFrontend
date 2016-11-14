@@ -1,0 +1,15 @@
+<div ng-controller="listCtrl">
+  <table class="table">
+    <tr>
+      <th>Id</th>
+      <th>Original</th>
+      <th>ShortId</th>
+    </tr>
+    <tr ng-repeat="url in urls">
+      <td>{{url.id}}</td>
+      <td><a href={{url.originalUrl}}>{{url.originalUrl}}</a></td>
+      <td><a href="{{'http://localhost:8888/#/redirect/'+url.shortUrl}}">{{'http://localhost:8888/#/redirect/'+url.shortUrl}}</a></td>
+
+    </tr>
+  </table>
+</div>
